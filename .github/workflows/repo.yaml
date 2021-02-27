@@ -1,0 +1,87 @@
+name: Arch AUR Repository Build
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron:  '1 7 * * 0'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build on x64_64
+    container:
+      image: archlinux:latest
+
+      options: --privileged
+
+      env:
+        AUR_ASROOT: 1
+        PKGEXT: .pkg.tar.zst
+        BUILD_PACKAGES: watchdog uhubctl snapd
+
+    steps:
+      - name: Set variables
+        id: set-vars
+        run: |
+          echo "::set-output name=date::$(date +'%Y-%m-%d %H:%M')"
+          echo "::set-output name=repo-id::$(echo ${{ github.repository }} | sed 's/\//-/g')"
+
+      - name: Build packages
+        id: package
+        run: |
+          export REPO_IDENTIFIER="${{ steps.set-vars.outputs.repo-id }}"
+          pacman -Syyu --noconfirm
+          pacman -S base-devel --noconfirm
+          sed -i 's,exit $E_ROOT,echo but you know what you do,' /usr/bin/makepkg
+          cd /tmp
+          curl --output aurutils.tar.gz https://aur.archlinux.org/cgit/aur.git/snapshot/aurutils.tar.gz
+          tar xf aurutils.tar.gz
+          cd aurutils
+          makepkg --syncdeps --noconfirm
+          pacman -U --noconfirm aurutils-*.pkg.tar.zst
+          cp -v /tmp/aurutils/aurutils-*.pkg.tar.zst ${GITHUB_WORKSPACE}
+          echo "::set-output name=arch::$(uname -m)"
+          repo-add ${GITHUB_WORKSPACE}/${REPO_IDENTIFIER}.db.tar.gz ${GITHUB_WORKSPACE}/aurutils-*.pkg.tar.zst
+          echo "setting up repo"
+          echo "# local repository (required by aur tools to be set up)" >> /etc/pacman.conf
+          echo "[${REPO_IDENTIFIER}]" >> /etc/pacman.conf
+          echo "SigLevel = Optional TrustAll" >> /etc/pacman.conf
+          echo "Server = file://${GITHUB_WORKSPACE} " >> /etc/pacman.conf
+          aur sync -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root ${GITHUB_WORKSPACE} $BUILD_PACKAGES
+
+      - name: Remove symbolic links
+        run: |
+          cd ${GITHUB_WORKSPACE}
+          ls -al
+          rm -v ${{ steps.set-vars.outputs.repo-id }}.db ${{ steps.set-vars.outputs.repo-id }}.files
+          cp -v ${{ steps.set-vars.outputs.repo-id }}.db.tar.gz ${{ steps.set-vars.outputs.repo-id }}.db
+          cp -v ${{ steps.set-vars.outputs.repo-id }}.files.tar.gz ${{ steps.set-vars.outputs.repo-id }}.files
+          rm -fv build-log.txt *.sh
+          ls -al
+          
+      - name: Remove release
+        uses: kopp/action-delete-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.package.outputs.arch }}
+
+      - name: Upload release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.package.outputs.arch }}
+          name: Arch Linux AUR Build ${{ github.run_number }} from ${{ steps.set-vars.outputs.date }} for ${{ steps.package.outputs.arch }}
+          body: |
+            To use this repository, please append the following to `/etc/pacman.conf`:
+            ```
+            [${{ steps.set-vars.outputs.repo-id }}]
+            SigLevel = Optional TrustAll
+            Server = https://github.com/${{ github.repository }}/releases/download/${{ steps.package.outputs.arch }}
+            ```
+          files: |
+            ${{ github.workspace }}/*
+          draft: false
+          prerelease: false
