@@ -18,7 +18,7 @@ jobs:
       env:
         AUR_ASROOT: 1
         PKGEXT: .pkg.tar.zst
-        BUILD_PACKAGES: watchdog uhubctl k3s-bin snapd
+        BUILD_PACKAGES: watchdog uhubctl k3s-bin booster-git snapd
 
     steps:
       - name: Set variables
