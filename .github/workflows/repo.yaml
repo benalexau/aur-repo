@@ -120,7 +120,7 @@ jobs:
             PKGEXT: .pkg.tar.zst
             REPO_IDENTIFIER: ${{ steps.set-vars.outputs.repo-id }}
             INSTALL_PACKAGES: jre11-openjdk-headless
-            BUILD_PACKAGES: watchdog uhubctl runrestic openhab3 openhab3-addons
+            BUILD_PACKAGES: watchdog uhubctl runrestic openhab3 openhab3-addons openhab2
 
           shell: /bin/sh
 
