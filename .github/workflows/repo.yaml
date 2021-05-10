@@ -18,7 +18,7 @@ jobs:
       env:
         AUR_ASROOT: 1
         PKGEXT: .pkg.tar.zst
-        BUILD_PACKAGES: watchdog uhubctl k3s-bin booster-git
+        BUILD_PACKAGES: watchdog uhubctl k3s-bin booster-git packer-builder-arm-git
 
     steps:
       - name: Set variables
