@@ -18,7 +18,7 @@ jobs:
       env:
         AUR_ASROOT: 1
         PKGEXT: .pkg.tar.zst
-        BUILD_PACKAGES: watchdog uhubctl k3s-bin booster-git packer-builder-arm-git
+        BUILD_PACKAGES: watchdog booster-git packer-builder-arm-git bacula-common
 
     steps:
       - name: Set variables
@@ -48,6 +48,8 @@ jobs:
           echo "[${REPO_IDENTIFIER}]" >> /etc/pacman.conf
           echo "SigLevel = Optional TrustAll" >> /etc/pacman.conf
           echo "Server = file://${GITHUB_WORKSPACE} " >> /etc/pacman.conf
+          curl --output bacula-key.asc https://www.bacula.org/downloads/Bacula-4096-Distribution-Verification-key.asc
+          gpg --batch --import bacula-key.asc
           aur sync -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root ${GITHUB_WORKSPACE} $BUILD_PACKAGES
 
       - name: Remove symbolic links
@@ -120,7 +122,7 @@ jobs:
             PKGEXT: .pkg.tar.zst
             REPO_IDENTIFIER: ${{ steps.set-vars.outputs.repo-id }}
             INSTALL_PACKAGES: jre11-openjdk-headless
-            BUILD_PACKAGES: watchdog uhubctl runrestic openhab3 openhab3-addons
+            BUILD_PACKAGES: watchdog openhab3 openhab3-addons
 
           shell: /bin/sh
 
