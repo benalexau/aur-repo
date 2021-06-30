@@ -18,7 +18,7 @@ jobs:
       env:
         AUR_ASROOT: 1
         PKGEXT: .pkg.tar.zst
-        BUILD_PACKAGES: watchdog booster-git packer-builder-arm-git bacula-common
+        BUILD_PACKAGES: watchdog booster-git packer-builder-arm-git bacula-common mtx-svn mt-st-git
 
     steps:
       - name: Set variables
