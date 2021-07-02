@@ -61,7 +61,7 @@ jobs:
           cp -v ${{ steps.set-vars.outputs.repo-id }}.files.tar.gz ${{ steps.set-vars.outputs.repo-id }}.files
           rm -fv build-log.txt *.sh
           ls -al
-          
+
       - name: Remove release
         uses: kopp/action-delete-release@v1
         env:
