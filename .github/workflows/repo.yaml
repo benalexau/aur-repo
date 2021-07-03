@@ -36,6 +36,7 @@ jobs:
       - name: Build packages
         id: package
         run: |
+          # Key imported and deleted early to avoid exposure during PKGBUILDs
           gpg --batch --import ${GITHUB_WORKSPACE}/gpg.key
           rm ${GITHUB_WORKSPACE}/gpg.key
           curl --output repo.key https://raw.githubusercontent.com/benalexau/aur-repo/master/repo.key
@@ -153,6 +154,7 @@ jobs:
           shell: /bin/sh
 
           run: |
+            # Key imported and deleted early to avoid exposure during PKGBUILDs
             gpg --batch --import /workspace/gpg.key
             rm /workspace/gpg.key
             curl --output repo.key https://raw.githubusercontent.com/benalexau/aur-repo/master/repo.key
