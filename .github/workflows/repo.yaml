@@ -16,6 +16,7 @@ jobs:
       options: --privileged
 
       env:
+        GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
         AUR_ASROOT: 1
         PKGEXT: .pkg.tar.zst
         BUILD_PACKAGES: watchdog booster-git packer-builder-arm-git bacula-common mtx-svn mt-st-git
@@ -27,9 +28,21 @@ jobs:
           echo "::set-output name=date::$(date +'%Y-%m-%d %H:%M')"
           echo "::set-output name=repo-id::$(echo ${{ github.repository }} | sed 's/\//-/g')"
 
+      - name: Store private key
+        id: gpg
+        run: |
+          echo "$GPG_PRIVATE_KEY" > ${GITHUB_WORKSPACE}/gpg.key
+
       - name: Build packages
         id: package
         run: |
+          gpg --batch --import ${GITHUB_WORKSPACE}/gpg.key
+          rm ${GITHUB_WORKSPACE}/gpg.key
+          curl --output repo.key https://raw.githubusercontent.com/benalexau/aur-repo/master/repo.key
+          pacman-key --init
+          pacman-key --add repo.key
+          pacman-key --lsign-key 71BDE43D3404BE41F65E5F640A5DAECE044E226C
+          rm repo.key
           export REPO_IDENTIFIER="${{ steps.set-vars.outputs.repo-id }}"
           pacman -Syyu --noconfirm
           pacman -S base-devel --noconfirm
@@ -50,7 +63,7 @@ jobs:
           echo "Server = file://${GITHUB_WORKSPACE} " >> /etc/pacman.conf
           curl --output bacula-key.asc https://www.bacula.org/downloads/Bacula-4096-Distribution-Verification-key.asc
           gpg --batch --import bacula-key.asc
-          aur sync -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root ${GITHUB_WORKSPACE} $BUILD_PACKAGES
+          aur sync --sign -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root ${GITHUB_WORKSPACE} $BUILD_PACKAGES
 
       - name: Remove symbolic links
         run: |
@@ -80,8 +93,13 @@ jobs:
             To use this repository, please append the following to `/etc/pacman.conf`:
             ```
             [${{ steps.set-vars.outputs.repo-id }}]
-            SigLevel = Optional TrustAll
+            SigLevel = Required
             Server = https://github.com/${{ github.repository }}/releases/download/${{ steps.package.outputs.arch }}
+            ```
+            You must also trust the signing key:
+            ```
+            sudo pacman-key --recv-keys 71BDE43D3404BE41F65E5F640A5DAECE044E226C --keyserver hkp://keyserver.ubuntu.com
+            sudo pacman-key --lsign-key 71BDE43D3404BE41F65E5F640A5DAECE044E226C
             ```
           files: |
             ${{ github.workspace }}/*
@@ -91,6 +109,9 @@ jobs:
   build-arm:
     runs-on: ubuntu-latest
     name: Build on ${{ matrix.arch }}
+
+    env:
+      GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
 
     strategy:
       matrix:
@@ -104,6 +125,11 @@ jobs:
         run: |
           echo "::set-output name=date::$(date +'%Y-%m-%d %H:%M')"
           echo "::set-output name=repo-id::$(echo ${{ github.repository }} | sed 's/\//-/g')"
+
+      - name: Store private key
+        id: gpg
+        run: |
+          echo "$GPG_PRIVATE_KEY" > ${{ runner.temp }}/gpg.key
 
       - name: Build packages
         id: package
@@ -127,6 +153,13 @@ jobs:
           shell: /bin/sh
 
           run: |
+            gpg --batch --import /workspace/gpg.key
+            rm /workspace/gpg.key
+            curl --output repo.key https://raw.githubusercontent.com/benalexau/aur-repo/master/repo.key
+            pacman-key --init
+            pacman-key --add repo.key
+            pacman-key --lsign-key 71BDE43D3404BE41F65E5F640A5DAECE044E226C
+            rm repo.key
             pacman -Syyu --noconfirm
             pacman -S base-devel --noconfirm
             pacman -S ${INSTALL_PACKAGES} --noconfirm
@@ -145,7 +178,7 @@ jobs:
             echo "[${REPO_IDENTIFIER}]" >> /etc/pacman.conf
             echo "SigLevel = Optional TrustAll" >> /etc/pacman.conf
             echo "Server = file:///workspace " >> /etc/pacman.conf
-            aur sync -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root /workspace $BUILD_PACKAGES
+            aur sync --sign -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root /workspace $BUILD_PACKAGES
 
       - name: Remove symbolic links
         run: |
@@ -175,8 +208,13 @@ jobs:
             To use this repository, please append the following to `/etc/pacman.conf`:
             ```
             [${{ steps.set-vars.outputs.repo-id }}]
-            SigLevel = Optional TrustAll
+            SigLevel = Required
             Server = https://github.com/${{ github.repository }}/releases/download/${{ steps.package.outputs.arch }}
+            ```
+            You must also trust the signing key:
+            ```
+            sudo pacman-key --recv-keys 71BDE43D3404BE41F65E5F640A5DAECE044E226C --keyserver hkp://keyserver.ubuntu.com
+            sudo pacman-key --lsign-key 71BDE43D3404BE41F65E5F640A5DAECE044E226C
             ```
           files: |
             ${{ runner.temp }}/*
