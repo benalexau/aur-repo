@@ -122,7 +122,7 @@ jobs:
             PKGEXT: .pkg.tar.zst
             REPO_IDENTIFIER: ${{ steps.set-vars.outputs.repo-id }}
             INSTALL_PACKAGES: jre11-openjdk-headless
-            BUILD_PACKAGES: watchdog bacula-common openhab3 openhab3-addons msntp
+            BUILD_PACKAGES: watchdog openhab3 openhab3-addons msntp
 
           shell: /bin/sh
 
