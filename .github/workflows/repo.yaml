@@ -122,7 +122,7 @@ jobs:
             PKGEXT: .pkg.tar.zst
             REPO_IDENTIFIER: ${{ steps.set-vars.outputs.repo-id }}
             INSTALL_PACKAGES: jre11-openjdk-headless
-            BUILD_PACKAGES: watchdog openhab3 openhab3-addons msntp
+            BUILD_PACKAGES: watchdog bacula-common openhab3 openhab3-addons msntp
 
           shell: /bin/sh
 
@@ -145,26 +145,6 @@ jobs:
             echo "[${REPO_IDENTIFIER}]" >> /etc/pacman.conf
             echo "SigLevel = Optional TrustAll" >> /etc/pacman.conf
             echo "Server = file:///workspace " >> /etc/pacman.conf
-            ls -l /
-            echo "Setting permissions so builder has write permission"
-            chmod 777 /workspace
-            chmod -R 666 /workspace/*
-            ls -lR /workspace
-            echo "Refreshing database to include local repo"
-            pacman -Sy
-            echo "Determining packages needed by Bacula"
-            PACKAGES=$(aur depends -a bacula-common | grep -v bacula | tr -s '\n' ' ')
-            echo "Installing Bacula dependencies $PACKAGES"
-            pacman -S --noconfirm $PACKAGES
-            echo "Creating builder user"
-            useradd -m builder
-            echo "Fetching key"
-            curl --output bacula-key.asc https://www.bacula.org/downloads/Bacula-4096-Distribution-Verification-key.asc
-            echo "Importing key"
-            su builder -c "gpg --batch --import bacula-key.asc"
-            echo "Build bacula-common"
-            su builder -c "aur sync -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root /workspace bacula-common"
-            echo "Build $BUILD_PACKAGES"
             aur sync -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root /workspace $BUILD_PACKAGES
 
       - name: Remove symbolic links
