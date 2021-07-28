@@ -148,8 +148,10 @@ jobs:
             AUR_ASROOT: 1
             PKGEXT: .pkg.tar.zst
             REPO_IDENTIFIER: ${{ steps.set-vars.outputs.repo-id }}
-            INSTALL_PACKAGES: jre11-openjdk-headless
-            BUILD_PACKAGES: watchdog openhab3 openhab3-addons msntp
+            #INSTALL_PACKAGES: jre11-openjdk-headless
+            INSTALL_PACKAGES: qt5-base postgresql-libs libmariadbclient lzo
+            #BUILD_PACKAGES: watchdog openhab3 openhab3-addons msntp bacula-common
+            BUILD_PACKAGES: bacula-common
 
           shell: /bin/sh
 
@@ -180,6 +182,9 @@ jobs:
             echo "[${REPO_IDENTIFIER}]" >> /etc/pacman.conf
             echo "SigLevel = Optional TrustAll" >> /etc/pacman.conf
             echo "Server = file:///workspace " >> /etc/pacman.conf
+            curl --output bacula-key.asc https://www.bacula.org/downloads/Bacula-4096-Distribution-Verification-key.asc
+            gpg --batch --import bacula-key.asc
+            pacman -Q
             aur sync --sign -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root /workspace $BUILD_PACKAGES
 
       - name: Remove symbolic links
