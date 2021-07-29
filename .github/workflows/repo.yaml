@@ -148,10 +148,9 @@ jobs:
             AUR_ASROOT: 1
             PKGEXT: .pkg.tar.zst
             REPO_IDENTIFIER: ${{ steps.set-vars.outputs.repo-id }}
-            #INSTALL_PACKAGES: jre11-openjdk-headless
-            INSTALL_PACKAGES: qt5-base postgresql-libs libmariadbclient lzo
+            INSTALL_PACKAGES: jre11-openjdk-headless
             #BUILD_PACKAGES: watchdog openhab3 openhab3-addons msntp bacula-common
-            BUILD_PACKAGES: bacula-common
+            BUILD_PACKAGES: bacula-client
 
           shell: /bin/sh
 
