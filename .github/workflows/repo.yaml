@@ -19,7 +19,7 @@ jobs:
         GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
         AUR_ASROOT: 1
         PKGEXT: .pkg.tar.zst
-        BUILD_PACKAGES: motioneye-git archivemail reposilite laminar booster-git packer-builder-arm-git bacula-common bacula-client mtx-svn mt-st-git photoprism jellyfin ib-tws
+        BUILD_PACKAGES: motioneye archivemail reposilite laminar booster-git packer-builder-arm-git bacula-common bacula-client mtx-svn mt-st-git photoprism jellyfin ib-tws
 
     steps:
       - name: Set variables
@@ -46,7 +46,7 @@ jobs:
           rm repo.key
           export REPO_IDENTIFIER="${{ steps.set-vars.outputs.repo-id }}"
           pacman -Syyu --noconfirm
-          pacman -S base-devel python --noconfirm
+          pacman -S base-devel python2 --noconfirm
           sed -i 's,exit $E_ROOT,echo but you know what you do,' /usr/bin/makepkg
           cd /tmp
           curl --output aurutils.tar.gz https://aur.archlinux.org/cgit/aur.git/snapshot/aurutils.tar.gz
