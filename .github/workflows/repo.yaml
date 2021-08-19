@@ -19,7 +19,7 @@ jobs:
         GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
         AUR_ASROOT: 1
         PKGEXT: .pkg.tar.zst
-        BUILD_PACKAGES: archivemail reposilite laminar booster-git packer-builder-arm-git bacula-common bacula-client mtx-svn mt-st-git photoprism jellyfin ib-tws
+        BUILD_PACKAGES: shinobi-git archivemail reposilite laminar booster-git packer-builder-arm-git bacula-common bacula-client mtx-svn mt-st-git photoprism jellyfin ib-tws
 
     steps:
       - name: Set variables
