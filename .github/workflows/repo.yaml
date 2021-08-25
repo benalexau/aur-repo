@@ -19,7 +19,7 @@ jobs:
         GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
         AUR_ASROOT: 1
         PKGEXT: .pkg.tar.zst
-        BUILD_PACKAGES: python-tflite-runtime python-pycoral pipman-git libedgetpu-std gasket-dkms shinobi-git archivemail reposilite laminar booster-git bacula-common bacula-client mtx-svn mt-st-git photoprism jellyfin ib-tws
+        BUILD_PACKAGES: python-tflite-runtime python-pycoral pipman-git libedgetpu-std gasket-dkms shinobi-git archivemail reposilite laminar booster-git bacula-common bacula-client mtx-svn mt-st-git jellyfin ib-tws
 
     steps:
       - name: Set variables
@@ -46,7 +46,7 @@ jobs:
           rm repo.key
           export REPO_IDENTIFIER="${{ steps.set-vars.outputs.repo-id }}"
           pacman -Syyu --noconfirm
-          pacman -S base-devel python-pip python-tensorflow python-pillow --noconfirm
+          pacman -S base-devel --noconfirm
           sed -i 's,exit $E_ROOT,echo but you know what you do,' /usr/bin/makepkg
           cd /tmp
           curl --output aurutils.tar.gz https://aur.archlinux.org/cgit/aur.git/snapshot/aurutils.tar.gz
@@ -64,6 +64,10 @@ jobs:
           echo "Server = file://${GITHUB_WORKSPACE} " >> /etc/pacman.conf
           curl --output bacula-key.asc https://www.bacula.org/downloads/Bacula-4096-Distribution-Verification-key.asc
           gpg --batch --import bacula-key.asc
+          # photoprism depends on tensorflow115 so must be built separately
+          aur sync --sign -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root ${GITHUB_WORKSPACE} photoprism
+          pacman -Rs tensorflow115 --noconfirm
+          pacman -S python-pip python-tensorflow python-pillow --noconfirm
           aur sync --sign -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root ${GITHUB_WORKSPACE} $BUILD_PACKAGES
 
       - name: Remove symbolic links
