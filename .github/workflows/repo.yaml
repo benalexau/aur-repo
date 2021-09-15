@@ -19,7 +19,7 @@ jobs:
         GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
         AUR_ASROOT: 1
         PKGEXT: .pkg.tar.zst
-        BUILD_PACKAGES: jackett sonarr radarr python-tflite-runtime python-pycoral pipman-git libedgetpu-std gasket-dkms shinobi-git archivemail reposilite laminar booster-git bacula-common bacula-client mtx-svn mt-st-git jellyfin ib-tws
+        BUILD_PACKAGES: google-chrome ipmiview jackett sonarr radarr python-tflite-runtime python-pycoral pipman-git libedgetpu-std gasket-dkms shinobi-git archivemail reposilite laminar booster-git bacula-common bacula-client mtx-svn mt-st-git jellyfin ib-tws
 
     steps:
       - name: Set variables
