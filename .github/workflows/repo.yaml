@@ -19,7 +19,7 @@ jobs:
         GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
         AUR_ASROOT: 1
         PKGEXT: .pkg.tar.zst
-        BUILD_PACKAGES: ledger-udev ledger-live-bin paru brother-mfc-l8690cdw zoom google-chrome ipmiview jackett sonarr radarr pipman-git libedgetpu-std gasket-dkms shinobi-git archivemail reposilite laminar booster-git bacula-common bacula-client mtx-svn mt-st-git
+        BUILD_PACKAGES: jellyfin-git ledger-udev ledger-live-bin paru brother-mfc-l8690cdw zoom google-chrome ipmiview jackett sonarr radarr pipman-git libedgetpu-std gasket-dkms shinobi-git archivemail reposilite laminar booster-git bacula-common bacula-client mtx-svn mt-st-git
 
     steps:
       - name: Set variables
