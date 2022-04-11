@@ -9,7 +9,8 @@ on:
 jobs:
   build-x86_64:
     runs-on: ubuntu-latest
-    name: Build on x64_64
+    name: Build on x86_64
+
     container:
       image: archlinux:latest
 
@@ -17,9 +18,7 @@ jobs:
 
       env:
         GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-        AUR_ASROOT: 1
         PKGEXT: .pkg.tar.zst
-        BUILD_PACKAGES: jellyfin-git ledger-udev ledger-live-bin paru brother-mfc-l8690cdw zoom google-chrome ipmiview jackett sonarr radarr pipman-git libedgetpu-std gasket-dkms shinobi-git archivemail reposilite laminar booster-git bacula-common bacula-client mtx-svn
 
     steps:
       - name: Set variables
@@ -33,42 +32,47 @@ jobs:
         run: |
           echo "$GPG_PRIVATE_KEY" > ${GITHUB_WORKSPACE}/gpg.key
 
-      - name: Build packages
-        id: package
+      - name: Prepare repo
+        id: prepare
         run: |
-          # Key imported and deleted early to avoid exposure during PKGBUILDs
-          gpg --batch --import ${GITHUB_WORKSPACE}/gpg.key
-          rm ${GITHUB_WORKSPACE}/gpg.key
+          echo "::set-output name=arch::$(uname -m)"
           curl --output repo.key https://raw.githubusercontent.com/benalexau/aur-repo/master/repo.key
           pacman-key --init
           pacman-key --add repo.key
           pacman-key --lsign-key 71BDE43D3404BE41F65E5F640A5DAECE044E226C
           rm repo.key
-          export REPO_IDENTIFIER="${{ steps.set-vars.outputs.repo-id }}"
           pacman -Syyu --noconfirm
-          pacman -S base-devel --noconfirm
-          sed -i 's,exit $E_ROOT,echo but you know what you do,' /usr/bin/makepkg
+          pacman -S --noconfirm base-devel sudo
+          echo 'auruser ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/auruser
+          useradd -m auruser
+          sudo -u auruser gpg --batch --import ${GITHUB_WORKSPACE}/gpg.key
+          rm ${GITHUB_WORKSPACE}/gpg.key
+          curl --output bacula-key.asc https://www.bacula.org/downloads/Bacula-4096-Distribution-Verification-key.asc
+          sudo -u auruser gpg --batch --import bacula-key.asc
           cd /tmp
           curl --output aurutils.tar.gz https://aur.archlinux.org/cgit/aur.git/snapshot/aurutils.tar.gz
           tar xf aurutils.tar.gz
+          chown -R auruser /tmp/aurutils
           cd aurutils
-          makepkg --syncdeps --noconfirm
-          pacman -U --noconfirm aurutils-*.pkg.tar.zst
-          cp -v /tmp/aurutils/aurutils-*.pkg.tar.zst ${GITHUB_WORKSPACE}
-          echo "::set-output name=arch::$(uname -m)"
-          repo-add ${GITHUB_WORKSPACE}/${REPO_IDENTIFIER}.db.tar.gz ${GITHUB_WORKSPACE}/aurutils-*.pkg.tar.zst
-          echo "setting up repo"
+          sudo -u auruser makepkg --syncdeps --noconfirm
+          ls -l
+          pacman -U --noconfirm aurutils-*.pkg.*
+          cp -v /tmp/aurutils/aurutils-*.pkg.* ${GITHUB_WORKSPACE}
+          export REPO_IDENTIFIER="${{ steps.set-vars.outputs.repo-id }}"
+          repo-add ${GITHUB_WORKSPACE}/${REPO_IDENTIFIER}.db.tar.gz ${GITHUB_WORKSPACE}/aurutils-*.pkg.*
+          chown -R auruser ${GITHUB_WORKSPACE}
+          ls -l ${GITHUB_WORKSPACE}
           echo "# local repository (required by aur tools to be set up)" >> /etc/pacman.conf
           echo "[${REPO_IDENTIFIER}]" >> /etc/pacman.conf
           echo "SigLevel = Optional TrustAll" >> /etc/pacman.conf
           echo "Server = file://${GITHUB_WORKSPACE} " >> /etc/pacman.conf
-          curl --output bacula-key.asc https://www.bacula.org/downloads/Bacula-4096-Distribution-Verification-key.asc
-          gpg --batch --import bacula-key.asc
+          pacman -Sy --noconfirm
           # photoprism depends on tensorflow115 so must be built separately
-          aur sync --sign -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root ${GITHUB_WORKSPACE} photoprism
-          pacman -Rs tensorflow115 --noconfirm
-          pacman -S python-pip python-tensorflow python-pillow --noconfirm
-          aur sync --sign -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root ${GITHUB_WORKSPACE} $BUILD_PACKAGES
+          sudo -u auruser aur sync --sign -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root ${GITHUB_WORKSPACE} photoprism
+          pacman -Rs --noconfirm tensorflow115
+          export REPO_IDENTIFIER="${{ steps.set-vars.outputs.repo-id }}"
+          pacman -S --noconfirm python-pip python-tensorflow python-pillow
+          sudo -u auruser aur sync --sign -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root ${GITHUB_WORKSPACE} jellyfin-git ledger-udev ledger-live-bin paru brother-mfc-l8690cdw zoom google-chrome ipmiview jackett sonarr radarr pipman-git libedgetpu-std gasket-dkms shinobi-git archivemail reposilite laminar booster-git bacula-common bacula-client mtx-svn
 
       - name: Remove symbolic links
         run: |
@@ -85,14 +89,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.package.outputs.arch }}
+          tag_name: ${{ steps.prepare.outputs.arch }}
 
       - name: Upload release
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.package.outputs.arch }}
+          tag_name: ${{ steps.prepare.outputs.arch }}
           name: Arch Linux AUR Build ${{ github.run_number }} from ${{ steps.set-vars.outputs.date }} for ${{ steps.package.outputs.arch }}
           body: |
             To use this repository, please append the following to `/etc/pacman.conf`:
@@ -136,58 +140,62 @@ jobs:
         run: |
           echo "$GPG_PRIVATE_KEY" > ${{ runner.temp }}/gpg.key
 
-      - name: Build packages
-        id: package
-        uses: uraimo/run-on-arch-action@v2.0.10
+      - name: Prepare repo
+        id: prepare
+        uses: benalexau/run-on-arch-action@issue-68
         with:
           arch: ${{ matrix.arch }}
           distro: archarm_latest
 
           githubToken: ${{ secrets.GITHUB_TOKEN }}
 
+          setup: |
+            cat /proc/sys/fs/binfmt_misc/qemu-aarch64
+
           dockerRunArgs: |
-            --volume "${{ runner.temp }}:/workspace"
+            --volume "${{ runner.temp }}:/workspace --security-opt seccomp=unconfined --cap-add=ALL"
 
           env: |
-            AUR_ASROOT: 1
             PKGEXT: .pkg.tar.zst
             REPO_IDENTIFIER: ${{ steps.set-vars.outputs.repo-id }}
-            INSTALL_PACKAGES: jre11-openjdk-headless
-            BUILD_PACKAGES: openhab3 openhab3-addons msntp bacula-client
 
           shell: /bin/sh
 
           run: |
-            # Key imported and deleted early to avoid exposure during PKGBUILDs
-            gpg --batch --import /workspace/gpg.key
-            rm /workspace/gpg.key
+            echo "::set-output name=arch::$(uname -m)"
             curl --output repo.key https://raw.githubusercontent.com/benalexau/aur-repo/master/repo.key
             pacman-key --init
             pacman-key --add repo.key
             pacman-key --lsign-key 71BDE43D3404BE41F65E5F640A5DAECE044E226C
             rm repo.key
             pacman -Syyu --noconfirm
-            pacman -S base-devel --noconfirm
-            pacman -S ${INSTALL_PACKAGES} --noconfirm
-            sed -i 's,exit $E_ROOT,echo but you know what you do,' /usr/bin/makepkg
+            pacman -S --noconfirm base-devel sudo
+            echo 'auruser ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/auruser
+            useradd -m auruser
+            sudo -u auruser gpg --batch --import /workspace/gpg.key
+            rm /workspace/gpg.key
+            curl --output bacula-key.asc https://www.bacula.org/downloads/Bacula-4096-Distribution-Verification-key.asc
+            sudo -u auruser gpg --batch --import bacula-key.asc
             cd /tmp
             curl --output aurutils.tar.gz https://aur.archlinux.org/cgit/aur.git/snapshot/aurutils.tar.gz
             tar xf aurutils.tar.gz
+            chown -R auruser /tmp/aurutils
             cd aurutils
-            makepkg --syncdeps --noconfirm
-            pacman -U --noconfirm aurutils-*.pkg.tar.zst
-            cp -v /tmp/aurutils/aurutils-*.pkg.tar.zst /workspace
-            echo "::set-output name=arch::$(uname -m)"
-            repo-add /workspace/${REPO_IDENTIFIER}.db.tar.gz /workspace/aurutils-*.pkg.tar.zst
-            echo "setting up repo"
+            sudo -u auruser makepkg --syncdeps --noconfirm
+            ls -l
+            pacman -U --noconfirm aurutils-*.pkg.*
+            cp -v /tmp/aurutils/aurutils-*.pkg.* /workspace
+            echo "Repo is ${REPO_IDENTIFIER}"
+            repo-add /workspace/${REPO_IDENTIFIER}.db.tar.gz /workspace/aurutils-*.pkg.*
+            chown -R auruser /workspace
+            ls -l /workspace
             echo "# local repository (required by aur tools to be set up)" >> /etc/pacman.conf
             echo "[${REPO_IDENTIFIER}]" >> /etc/pacman.conf
             echo "SigLevel = Optional TrustAll" >> /etc/pacman.conf
             echo "Server = file:///workspace " >> /etc/pacman.conf
-            curl --output bacula-key.asc https://www.bacula.org/downloads/Bacula-4096-Distribution-Verification-key.asc
-            gpg --batch --import bacula-key.asc
-            pacman -Q
-            aur sync --sign -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root /workspace $BUILD_PACKAGES
+            pacman -Sy --noconfirm
+            pacman -S --noconfirm jre11-openjdk-headless
+            sudo -u auruser aur sync --sign -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root /workspace openhab3 openhab3-addons msntp bacula-client
 
       - name: Remove symbolic links
         run: |
