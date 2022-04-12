@@ -52,7 +52,7 @@ jobs:
           cd /tmp
           curl --output aurutils.tar.gz https://aur.archlinux.org/cgit/aur.git/snapshot/aurutils.tar.gz
           tar xf aurutils.tar.gz
-          chown -R auruser /tmp/aurutils
+          chmod -R 777 /tmp/aurutils
           cd aurutils
           sudo -u auruser makepkg --syncdeps --noconfirm
           ls -l
@@ -60,7 +60,7 @@ jobs:
           cp -v /tmp/aurutils/aurutils-*.pkg.* ${GITHUB_WORKSPACE}
           export REPO_IDENTIFIER="${{ steps.set-vars.outputs.repo-id }}"
           repo-add ${GITHUB_WORKSPACE}/${REPO_IDENTIFIER}.db.tar.gz ${GITHUB_WORKSPACE}/aurutils-*.pkg.*
-          chown -R auruser ${GITHUB_WORKSPACE}
+          chmod -R 777 ${GITHUB_WORKSPACE}
           ls -l ${GITHUB_WORKSPACE}
           echo "# local repository (required by aur tools to be set up)" >> /etc/pacman.conf
           echo "[${REPO_IDENTIFIER}]" >> /etc/pacman.conf
@@ -70,10 +70,9 @@ jobs:
           # photoprism depends on tensorflow115 so must be built separately
           sudo -u auruser aur sync --sign -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root ${GITHUB_WORKSPACE} photoprism
           pacman -Rs --noconfirm tensorflow115
-          export REPO_IDENTIFIER="${{ steps.set-vars.outputs.repo-id }}"
           pacman -S --noconfirm python-pip python-tensorflow python-pillow
           sudo -u auruser aur sync --sign -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root ${GITHUB_WORKSPACE} jellyfin-git ledger-udev ledger-live-bin paru brother-mfc-l8690cdw zoom google-chrome ipmiview jackett sonarr radarr pipman-git libedgetpu-std gasket-dkms shinobi-git archivemail reposilite laminar bacula-common bacula-client mtx-svn mt-st-git
-          chown -R root ${GITHUB_WORKSPACE}
+          chmod -R 777 ${GITHUB_WORKSPACE}
 
       - name: Remove symbolic links
         run: |
@@ -98,13 +97,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.prepare.outputs.arch }}
-          name: Arch Linux AUR Build ${{ github.run_number }} from ${{ steps.set-vars.outputs.date }} for ${{ steps.package.outputs.arch }}
+          name: Arch Linux AUR Build ${{ github.run_number }} from ${{ steps.set-vars.outputs.date }} for ${{ steps.prepare.outputs.arch }}
           body: |
             To use this repository, please append the following to `/etc/pacman.conf`:
             ```
             [${{ steps.set-vars.outputs.repo-id }}]
             SigLevel = Required
-            Server = https://github.com/${{ github.repository }}/releases/download/${{ steps.package.outputs.arch }}
+            Server = https://github.com/${{ github.repository }}/releases/download/${{ steps.prepare.outputs.arch }}
             ```
             You must also trust the signing key:
             ```
@@ -150,11 +149,8 @@ jobs:
 
           githubToken: ${{ secrets.GITHUB_TOKEN }}
 
-          setup: |
-            cat /proc/sys/fs/binfmt_misc/qemu-aarch64
-
           dockerRunArgs: |
-            --volume "${{ runner.temp }}:/workspace --security-opt seccomp=unconfined --cap-add=ALL"
+            --volume "${{ runner.temp }}:/workspace"
 
           env: |
             PKGEXT: .pkg.tar.zst
@@ -180,15 +176,14 @@ jobs:
             cd /tmp
             curl --output aurutils.tar.gz https://aur.archlinux.org/cgit/aur.git/snapshot/aurutils.tar.gz
             tar xf aurutils.tar.gz
-            chown -R auruser /tmp/aurutils
+            chmod -R 777 /tmp/aurutils
             cd aurutils
             sudo -u auruser makepkg --syncdeps --noconfirm
             ls -l
             pacman -U --noconfirm aurutils-*.pkg.*
             cp -v /tmp/aurutils/aurutils-*.pkg.* /workspace
-            echo "Repo is ${REPO_IDENTIFIER}"
             repo-add /workspace/${REPO_IDENTIFIER}.db.tar.gz /workspace/aurutils-*.pkg.*
-            chown -R auruser /workspace
+            chmod -R 777 /workspace
             ls -l /workspace
             echo "# local repository (required by aur tools to be set up)" >> /etc/pacman.conf
             echo "[${REPO_IDENTIFIER}]" >> /etc/pacman.conf
@@ -197,10 +192,13 @@ jobs:
             pacman -Sy --noconfirm
             pacman -S --noconfirm jre11-openjdk-headless
             sudo -u auruser aur sync --sign -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root /workspace openhab3 openhab3-addons msntp bacula-client
-            chown -R root /workspace
+            chmod -R 777 /workspace
 
       - name: Remove symbolic links
         run: |
+          pwd
+          echo Runner tmp: "${{ runner.temp }}"
+          ls -l
           cd "${{ runner.temp }}"
           ls -al
           rm -v ${{ steps.set-vars.outputs.repo-id }}.db ${{ steps.set-vars.outputs.repo-id }}.files
@@ -214,21 +212,21 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.package.outputs.arch }}
+          tag_name: ${{ steps.prepare.outputs.arch }}
 
       - name: Upload release
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.package.outputs.arch }}
-          name: Arch Linux ARM AUR Build ${{ github.run_number }} from ${{ steps.set-vars.outputs.date }} for ${{ steps.package.outputs.arch }}
+          tag_name: ${{ steps.prepare.outputs.arch }}
+          name: Arch Linux ARM AUR Build ${{ github.run_number }} from ${{ steps.set-vars.outputs.date }} for ${{ steps.prepare.outputs.arch }}
           body: |
             To use this repository, please append the following to `/etc/pacman.conf`:
             ```
             [${{ steps.set-vars.outputs.repo-id }}]
             SigLevel = Required
-            Server = https://github.com/${{ github.repository }}/releases/download/${{ steps.package.outputs.arch }}
+            Server = https://github.com/${{ github.repository }}/releases/download/${{ steps.prepare.outputs.arch }}
             ```
             You must also trust the signing key:
             ```
