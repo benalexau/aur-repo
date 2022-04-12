@@ -73,6 +73,7 @@ jobs:
           export REPO_IDENTIFIER="${{ steps.set-vars.outputs.repo-id }}"
           pacman -S --noconfirm python-pip python-tensorflow python-pillow
           sudo -u auruser aur sync --sign -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root ${GITHUB_WORKSPACE} jellyfin-git ledger-udev ledger-live-bin paru brother-mfc-l8690cdw zoom google-chrome ipmiview jackett sonarr radarr pipman-git libedgetpu-std gasket-dkms shinobi-git archivemail reposilite laminar bacula-common bacula-client mtx-svn mt-st-git
+          chown -R root ${GITHUB_WORKSPACE}
 
       - name: Remove symbolic links
         run: |
@@ -196,6 +197,7 @@ jobs:
             pacman -Sy --noconfirm
             pacman -S --noconfirm jre11-openjdk-headless
             sudo -u auruser aur sync --sign -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root /workspace openhab3 openhab3-addons msntp bacula-client
+            chown -R root /workspace
 
       - name: Remove symbolic links
         run: |
