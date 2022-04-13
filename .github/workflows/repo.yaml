@@ -142,7 +142,7 @@ jobs:
 
       - name: Prepare repo
         id: prepare
-        uses: benalexau/run-on-arch-action@issue-68
+        uses: uraimo/run-on-arch-action@v2
         with:
           arch: ${{ matrix.arch }}
           distro: archarm_latest
