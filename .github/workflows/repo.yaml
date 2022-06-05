@@ -47,7 +47,7 @@ jobs:
           useradd -m auruser
           sudo -u auruser gpg --batch --import ${GITHUB_WORKSPACE}/gpg.key
           rm ${GITHUB_WORKSPACE}/gpg.key
-          curl --output bacula-key.asc https://www.bacula.org/downloads/Bacula-4096-Distribution-Verification-key.asc
+          curl --output bacula-key.asc https://raw.githubusercontent.com/benalexau/aur-repo/master/Bacula-4096-Distribution-Verification-key.asc
           sudo -u auruser gpg --batch --import bacula-key.asc
           cd /tmp
           curl --output aurutils.tar.gz https://aur.archlinux.org/cgit/aur.git/snapshot/aurutils.tar.gz
@@ -171,7 +171,7 @@ jobs:
             useradd -m auruser
             sudo -u auruser gpg --batch --import /workspace/gpg.key
             rm /workspace/gpg.key
-            curl --output bacula-key.asc https://www.bacula.org/downloads/Bacula-4096-Distribution-Verification-key.asc
+            curl --output bacula-key.asc https://raw.githubusercontent.com/benalexau/aur-repo/master/Bacula-4096-Distribution-Verification-key.asc
             sudo -u auruser gpg --batch --import bacula-key.asc
             cd /tmp
             curl --output aurutils.tar.gz https://aur.archlinux.org/cgit/aur.git/snapshot/aurutils.tar.gz
