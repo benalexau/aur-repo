@@ -214,11 +214,9 @@ jobs:
           tag_name: ${{ steps.prepare.outputs.arch }}
 
       - name: Upload release
-        uses: softprops/action-gh-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: ncipollo/release-action@v1
         with:
-          tag_name: ${{ steps.prepare.outputs.arch }}
+          tag: ${{ steps.prepare.outputs.arch }}
           name: Arch Linux ARM AUR Build ${{ github.run_number }} from ${{ steps.set-vars.outputs.date }} for ${{ steps.prepare.outputs.arch }}
           body: |
             To use this repository, please append the following to `/etc/pacman.conf`:
@@ -232,7 +230,8 @@ jobs:
             sudo pacman-key --recv-keys 71BDE43D3404BE41F65E5F640A5DAECE044E226C --keyserver hkp://keyserver.ubuntu.com
             sudo pacman-key --lsign-key 71BDE43D3404BE41F65E5F640A5DAECE044E226C
             ```
-          files: |
+          artifacts: |
             ${{ runner.temp }}/*
           draft: false
           prerelease: false
+          token: ${{ secrets.GITHUB_TOKEN }}
