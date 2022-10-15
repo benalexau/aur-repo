@@ -49,7 +49,7 @@ jobs:
           rm ${GITHUB_WORKSPACE}/gpg.key
           curl --output bacula-key.asc https://raw.githubusercontent.com/benalexau/aur-repo/master/Bacula-4096-Distribution-Verification-key.asc
           sudo -u auruser gpg --batch --import bacula-key.asc
-          curl --output bacula-key.asc https://raw.githubusercontent.com/benalexau/aur-repo/master/python2-key.asc
+          curl --output python2-key.asc https://raw.githubusercontent.com/benalexau/aur-repo/master/python2-key.asc
           sudo -u auruser gpg --batch --import python2-key.asc
           cd /tmp
           curl --output aurutils.tar.gz https://aur.archlinux.org/cgit/aur.git/snapshot/aurutils.tar.gz
