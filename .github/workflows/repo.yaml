@@ -73,6 +73,10 @@ jobs:
           sudo -u auruser aur sync --sign -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root ${GITHUB_WORKSPACE} photoprism
           pacman -Rs --noconfirm tensorflow115
           pacman -S --noconfirm python-pip python-tensorflow python-pillow
+          export OPENSSL_LIB_DIR=/usr/lib
+          export OPENSSL_INCLUDE_DIR=/usr/include/openssl
+          archlinux-java unset
+          pacman -S --noconfirm jdk-openjdk
           for pkg in etesync-dav jellyfin ledger-udev ledger-live-bin paru brother-mfc-l8690cdw zoom google-chrome ipmiview jackett sonarr radarr pipman-git archivemail reposilite laminar bacula-common bacula-client mtx-svn mt-st-git rtsptoweb
           do
             echo "### Package ${pkg}"
