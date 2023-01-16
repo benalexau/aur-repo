@@ -78,7 +78,7 @@ jobs:
           pacman -S --noconfirm java-runtime-common
           archlinux-java unset
           pacman -S --noconfirm jdk-openjdk
-          for pkg in archlinux-java-run etesync-dav jellyfin ledger-udev ledger-live-bin paru brother-mfc-l8690cdw zoom google-chrome ipmiview jackett sonarr radarr pipman-git archivemail reposilite laminar bacula-common bacula-client mtx-svn mt-st-git rtsptoweb
+          for pkg in archlinux-java-run etesync-dav jellyfin ledger-udev ledger-live-bin paru brother-mfc-l8690cdw zoom google-chrome ipmiview jackett sonarr radarr pipman-git archivemail reposilite laminar bacula-common bacula-client mtx-svn mt-st-git
           do
             echo "### Package ${pkg}"
             sudo -u auruser aur sync --sign -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root ${GITHUB_WORKSPACE} ${pkg} || echo "!!! Package ${pkg} failed"
@@ -201,7 +201,7 @@ jobs:
             echo "Server = file:///workspace " >> /etc/pacman.conf
             pacman -Sy --noconfirm
             pacman -S --noconfirm jre11-openjdk-headless
-            sudo -u auruser aur sync --sign -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root /workspace openhab3 openhab3-addons msntp bacula-client rtsptoweb
+            sudo -u auruser aur sync --sign -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root /workspace openhab3 openhab3-addons msntp bacula-client
             chmod -R 777 /workspace
 
       - name: Remove symbolic links
