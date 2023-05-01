@@ -78,7 +78,7 @@ jobs:
           pacman -S --noconfirm java-runtime-common
           archlinux-java unset
           pacman -S --noconfirm jdk-openjdk
-          for pkg in archlinux-java-run etesync-dav jellyfin ledger-udev ledger-live-bin paru brother-mfc-l8690cdw zoom google-chrome ipmiview jackett sonarr radarr pipman-git archivemail reposilite laminar bacula-common bacula-client mtx-svn mt-st-git
+          for pkg in archlinux-java-run etesync-dav jellyfin ledger-udev ledger-live-bin paru zoom google-chrome ipmiview jackett sonarr radarr pipman-git archivemail reposilite laminar bacula-common bacula-client mtx-svn mt-st-git
           do
             echo "### Package ${pkg}"
             sudo -u auruser aur sync --sign -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root ${GITHUB_WORKSPACE} ${pkg} || echo "!!! Package ${pkg} failed"
