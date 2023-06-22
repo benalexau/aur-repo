@@ -201,7 +201,7 @@ jobs:
             echo "Server = file:///workspace " >> /etc/pacman.conf
             pacman -Sy --noconfirm
             pacman -S --noconfirm jre11-openjdk-headless
-            sudo -u auruser aur sync --sign -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root /workspace openhab3 openhab3-addons bacula-client broadlink-mqtt-git
+            sudo -u auruser aur sync --sign -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root /workspace openhab3 openhab3-addons
             chmod -R 777 /workspace
 
       - name: Remove symbolic links
