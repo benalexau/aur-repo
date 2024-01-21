@@ -47,8 +47,6 @@ jobs:
           useradd -m auruser
           sudo -u auruser gpg --batch --import ${GITHUB_WORKSPACE}/gpg.key
           rm ${GITHUB_WORKSPACE}/gpg.key
-          curl --output bacula-key.asc https://raw.githubusercontent.com/benalexau/aur-repo/master/Bacula-4096-Distribution-Verification-key.asc
-          sudo -u auruser gpg --batch --import bacula-key.asc
           curl --output python2-key.asc https://raw.githubusercontent.com/benalexau/aur-repo/master/python2-key.asc
           sudo -u auruser gpg --batch --import python2-key.asc
           cd /tmp
@@ -78,7 +76,7 @@ jobs:
           pacman -S --noconfirm java-runtime-common
           archlinux-java unset
           pacman -S --noconfirm jdk-openjdk
-          for pkg in archlinux-java-run etesync-dav jellyfin ledger-udev ledger-live-bin paru zoom google-chrome ipmiview jackett sonarr radarr pipman-git laminar bacula-common bacula-client mtx-svn mt-st-git openhab3 openhab3-addons openhab4 openhab4-addons broadlink-mqtt-git qrcodegen
+          for pkg in archlinux-java-run etesync-dav jellyfin ledger-udev ledger-live-bin paru zoom google-chrome ipmiview jackett sonarr radarr pipman-git laminar openhab3 openhab3-addons openhab4 openhab4-addons broadlink-mqtt-git qrcodegen
           do
             echo "### Package ${pkg}"
             sudo -u auruser aur sync --sign -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root ${GITHUB_WORKSPACE} ${pkg} || echo "!!! Package ${pkg} failed"
@@ -181,8 +179,6 @@ jobs:
             useradd -m auruser
             sudo -u auruser gpg --batch --import /workspace/gpg.key
             rm /workspace/gpg.key
-            curl --output bacula-key.asc https://raw.githubusercontent.com/benalexau/aur-repo/master/Bacula-4096-Distribution-Verification-key.asc
-            sudo -u auruser gpg --batch --import bacula-key.asc
             cd /tmp
             curl --output aurutils.tar.gz https://aur.archlinux.org/cgit/aur.git/snapshot/aurutils.tar.gz
             tar xf aurutils.tar.gz
