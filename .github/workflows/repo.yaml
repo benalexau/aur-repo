@@ -213,11 +213,10 @@ jobs:
           ls -al
 
       - name: Remove release
-        uses: kopp/action-delete-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: cb80/delrel@latest
         with:
           tag_name: ${{ steps.prepare.outputs.arch }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload release
         uses: ncipollo/release-action@v1
