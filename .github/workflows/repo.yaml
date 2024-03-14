@@ -96,7 +96,7 @@ jobs:
       - name: Remove release
         uses: cb80/delrel@latest
         with:
-          tag_name: ${{ steps.prepare.outputs.arch }}
+          tag: ${{ steps.prepare.outputs.arch }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload release
@@ -215,7 +215,7 @@ jobs:
       - name: Remove release
         uses: cb80/delrel@latest
         with:
-          tag_name: ${{ steps.prepare.outputs.arch }}
+          tag: ${{ steps.prepare.outputs.arch }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload release
