@@ -68,7 +68,7 @@ jobs:
           echo "Server = file://${GITHUB_WORKSPACE} " >> /etc/pacman.conf
           pacman -Sy --noconfirm
           # photoprism depends on tensorflow115 so must be built separately
-          sudo -u auruser aur sync --sign -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root ${GITHUB_WORKSPACE} photoprism
+          sudo -u auruser aur sync --sign -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root ${GITHUB_WORKSPACE} photoprism-bin
           pacman -Rs --noconfirm tensorflow115
           pacman -S --noconfirm python-pip python-tensorflow python-pillow
           export OPENSSL_LIB_DIR=/usr/lib
