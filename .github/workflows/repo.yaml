@@ -67,16 +67,13 @@ jobs:
           echo "SigLevel = Optional TrustAll" >> /etc/pacman.conf
           echo "Server = file://${GITHUB_WORKSPACE} " >> /etc/pacman.conf
           pacman -Sy --noconfirm
-          # photoprism depends on tensorflow115 so must be built separately
-          sudo -u auruser aur sync --sign -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root ${GITHUB_WORKSPACE} photoprism-bin
-          pacman -Rs --noconfirm tensorflow115
           pacman -S --noconfirm python-pip python-tensorflow python-pillow
           export OPENSSL_LIB_DIR=/usr/lib
           export OPENSSL_INCLUDE_DIR=/usr/include/openssl
           pacman -S --noconfirm java-runtime-common
           archlinux-java unset
           pacman -S --noconfirm jdk-openjdk
-          for pkg in archlinux-java-run etesync-dav jellyfin ledger-udev ledger-live-bin paru zoom google-chrome ipmiview jackett sonarr radarr laminar qrcodegen mediamtx-bin vial-appimage reposilite
+          for pkg in archlinux-java-run photoprism-bin etesync-dav jellyfin ledger-udev ledger-live-bin paru zoom google-chrome ipmiview jackett sonarr radarr laminar qrcodegen mediamtx-bin vial-appimage reposilite
           do
             echo "### Package ${pkg}"
             sudo -u auruser aur sync --sign -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root ${GITHUB_WORKSPACE} ${pkg} || echo "!!! Package ${pkg} failed"
