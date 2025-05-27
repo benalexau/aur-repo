@@ -73,7 +73,7 @@ jobs:
           pacman -S --noconfirm java-runtime-common
           archlinux-java unset
           pacman -S --noconfirm jdk-openjdk
-          for pkg in archlinux-java-run ledger-udev ledger-live-bin paru zoom google-chrome ipmiview vial-appimage code-marketplace pgtap perl-pgtap-git
+          for pkg in archlinux-java-run ledger-udev ledger-live-bin paru zoom google-chrome vial-appimage code-marketplace pgtap perl-pgtap-git ib-tws
           do
             echo "### Package ${pkg}"
             sudo -u auruser aur sync --sign -A --noconfirm --noview --database ${REPO_IDENTIFIER} --root ${GITHUB_WORKSPACE} ${pkg} || echo "!!! Package ${pkg} failed"
